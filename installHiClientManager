@@ -1,0 +1,31 @@
+#! /bin/bash
+#This screip installs Hi Client Manager on linux ubuntu
+# unzip to /opt/$APPNAME/
+# copy all configs from config folder to /etc/opt/$APPNAME
+# make symblink of scripts to /usr/local/bin
+# make symblink of services to /etc/systemd/system/
+# enable services
+# start services
+# delete temp
+
+APPNAME="HiClientManager"
+wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/HiClientManager.zip
+unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
+rm /tmp/$APPNAME.zip
+
+mkdir /etc/opt/$APPNAME
+mkdir /etc/opt/$APPNAME/auth
+
+cp -a /opt/$APPNAME/config/. /etc/opt/$APPNAME
+
+groupadd hitunnel
+ln -s /opt/$APPNAME/services/hi-client-manager.service /etc/systemd/system/hi-client-manager.service
+chmod +x /opt/$APPNAME/scripts/$APPNAME.sh
+ln -s /opt/$APPNAME/scripts/$APPNAME.sh /usr/local/bin/$APPNAME
+
+systemctl enable hi-client-manager.service
+systemctl start hi-client-manager.service
+
+
+
+

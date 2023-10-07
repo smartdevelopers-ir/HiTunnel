@@ -1,0 +1,32 @@
+#! /bin/bash
+#This screip installs Hi Client Manager on linux ubuntu
+# unzip to /opt/$APPNAME/
+# copy all configs from config folder to /etc/opt/$APPNAME
+# make symblink of scripts to /usr/local/bin
+# make symblink of services to /etc/systemd/system/
+# enable services
+# start services
+# delete temp
+
+APPNAME="PiperServer"
+wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/PiperServer.zip
+unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
+rm /tmp/$APPNAME.zip
+
+mkdir /etc/opt/$APPNAME
+mkdir /etc/opt/$APPNAME/auth
+
+cp -a /opt/$APPNAME/config/. /etc/opt/$APPNAME
+
+groupadd hitunnel 2> /dev/null
+ln -s /opt/$APPNAME/services/piper-server.service /etc/systemd/system/piper-server.service
+
+chmod +x /opt/$APPNAME/scripts/$APPNAME.sh
+ln -s /opt/$APPNAME/scripts/$APPNAME.sh /usr/local/bin/$APPNAME
+
+systemctl enable piper-server.service
+systemctl start piper-server.service
+
+
+
+
