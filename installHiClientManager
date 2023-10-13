@@ -9,6 +9,44 @@
 # delete temp
 
 APPNAME="HiClientManager"
+
+not_empty_read(){
+local DESCRIPTION=$1
+local DEFAULT_VALUE=$2
+local result
+while [ -z $result ]; do
+	read -p $DESCRIPTION -e -i $DEFAULT_VALUE result
+done
+echo $result
+}
+installConfig(){
+echo -e "Please enter the first PiperServer detail \n"
+server_name=$(not_empty_read "Server Name : ")
+piper_websocket_address=$(not_empty_read "Piper Websocket Address : " "wss://$server_name/ws/piper")
+while [[ "$through_vpn" != "true" ]] && [[ "$through_vpn" != "false" ]]; do
+	through_vpn=$(not_empty_read "Should clients connect to this websocket address through VPN ? (Y)es-(N)o ? :" "Y")
+	if [[ "${through_vpn,,}" == "y" ]] || [["${through_vpn,,}" == "yes" ]]; then
+		through_vpn="true"
+	elif [[ "${through_vpn,,}" == "n" ]] || [["${through_vpn,,}" == "no" ]]; then
+		through_vpn="false"
+	fi
+done
+
+database_server_address=$(not_empty_read "Enter database server address , ( default is localhost if PiperServer installed on this server) : " "localhost")
+database_server_port=$(not_empty_read "Enter database server port" "5050")
+
+sed -i -e 's/"name": ".*"/"name": "'$server_name'"/' /etc/opt/$APPNAME/server.config
+sed -i -e 's/"websocketAddress": ".*"/"websocketAddress": "'$piper_websocket_address'"/' /etc/opt/$APPNAME/server.config
+sed -i -e 's/"websocketThroughVPN": ".*"/"websocketThroughVPN": "'$through_vpn'"/' /etc/opt/$APPNAME/server.config
+sed -i -e 's/"databaseServerAddress": ".*"/"databaseServerAddress": "'$database_server_address'"/' /etc/opt/$APPNAME/server.config
+sed -i -e 's/"databaseServerPort": ".*"/"databaseServerPort": "'$database_server_port'"/' /etc/opt/$APPNAME/server.config
+
+
+
+}
+
+
+
 wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/HiClientManager.zip
 unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
 rm /tmp/$APPNAME.zip
@@ -22,6 +60,8 @@ groupadd hitunnel
 ln -s /opt/$APPNAME/services/hi-client-manager.service /etc/systemd/system/hi-client-manager.service
 chmod +x /opt/$APPNAME/scripts/$APPNAME.sh
 ln -s /opt/$APPNAME/scripts/$APPNAME.sh /usr/local/bin/$APPNAME
+
+installConfig
 
 systemctl enable hi-client-manager.service
 systemctl start hi-client-manager.service
