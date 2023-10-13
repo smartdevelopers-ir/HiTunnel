@@ -53,6 +53,31 @@ installConfig(){
 	fi
 }
 
+installCaddy(){
+	if [[ $(ls /etc/caddy) ]]; then
+		echo "caddy already installed"
+	else
+		sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+		curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+		curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+		sudo apt update
+		sudo apt install caddy
+	fi
+	
+	read -p "Enter your server domain : " server_domin
+	echo -e "$server_domin {\n" > /etc/caddy/Caddyfile
+	if [[ "$piper_server_address" == "localhost" ]]; then
+		echo -e "\thandle /ws/piper* {\n" \
+			"\t\treverse_proxy ws://$piper_server_address:$piper_server_port\n" \
+			"\t}\n" >> /etc/caddy/Caddyfile
+	fi
+	echo -e "\thandle {\n" \
+			"\t\trespond \"hello\"\n" \
+			"\t}\n" >> /etc/caddy/Caddyfile
+	echo -e "}"
+
+}
+
 
 wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/PiperServer.zip
 unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
@@ -70,6 +95,11 @@ chmod +x /opt/$APPNAME/scripts/$APPNAME.sh
 ln -s /opt/$APPNAME/scripts/$APPNAME.sh /usr/local/bin/$APPNAME
 
 installConfig
+read -p "Do you want to install and config Caddy server for PiperServer(Yes/No) ? " installCaddyConfirmation
+
+if [[ "${installCaddyConfirmation,,}" == "yes" ]]; then
+	installCaddy
+fi
 
 systemctl enable piper-server.service
 systemctl start piper-server.service
