@@ -14,10 +14,10 @@ not_empty_read(){
 local DESCRIPTION="$1"
 local DEFAULT_VALUE="$2"
 local result
-while [ -z $result ]; do
-	read -p $DESCRIPTION -e -i $DEFAULT_VALUE result
+while [ -z "$result" ]; do
+	read -p "$DESCRIPTION" -e -i "$DEFAULT_VALUE" result
 done
-echo $result
+echo "$result"
 }
 
 installConfig(){
@@ -33,11 +33,11 @@ installConfig(){
 	echo -e "The port that PiperServer must listen to. default is 5051 \n"
 	piper_server_port=$(not_empty_read "Enter PiperServer listening port :" "5051")
 	
-	sed -i -e 's/"tlsCertFile": ".*"/"tlsCertFile": "'$tls_cert_file'"/' /etc/opt/$APPNAME/server.config
-	sed -i -e 's/"tlsPrivateKetFile": ".*"/"tlsPrivateKetFile": "'$tls_private_key_file'"/' /etc/opt/$APPNAME/server.config
-	sed -i -e 's/"databaseServerPort": ".*"/"databaseServerPort": "'$database_server_port'"/' /etc/opt/$APPNAME/server.config
-	sed -i -e 's/"piperServerAddress": ".*"/"piperServerAddress": "'$piper_server_address'"/' /etc/opt/$APPNAME/server.config
-	sed -i -e 's/"piperServerPort": ".*"/"piperServerPort": "'$piper_server_port'"/' /etc/opt/$APPNAME/server.config
+	sed -i -e 's#"tlsCertFile": ".*"#"tlsCertFile": "'"$tls_cert_file"'"#' /etc/opt/$APPNAME/server.config
+	sed -i -e 's#"tlsPrivateKetFile": ".*"#"tlsPrivateKetFile": "'"$"'"#' /etc/opt/$APPNAME/server.config
+	sed -i -e 's#"databaseServerPort": .*[,]*$#"databaseServerPort": '"$database_server_port"',#' /etc/opt/$APPNAME/server.config
+	sed -i -e 's#"piperServerAddress": ".*"#"piperServerAddress": "'"$piper_server_address"'"#' /etc/opt/$APPNAME/server.config
+	sed -i -e 's/"piperServerPort": .*[,]*$/"piperServerPort": '"$piper_server_port"'/' /etc/opt/$APPNAME/server.config
 	
 	# creat private and publick key
 	if [[ $(ls /bin/java) ]]; then

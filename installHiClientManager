@@ -15,9 +15,9 @@ local DESCRIPTION="$1"
 local DEFAULT_VALUE="$2"
 local result
 while [ -z "$result" ]; do
-	read -p $DESCRIPTION -e -i $DEFAULT_VALUE result
+	read -p "$DESCRIPTION" -e -i "$DEFAULT_VALUE" result
 done
-echo $result
+echo "$result"
 }
 installConfig(){
 echo -e "Please enter the first PiperServer detail \n"
@@ -33,13 +33,13 @@ while [[ "$through_vpn" != "true" ]] && [[ "$through_vpn" != "false" ]]; do
 done
 
 database_server_address=$(not_empty_read "Enter database server address , ( default is localhost if PiperServer installed on this server) : " "localhost")
-database_server_port=$(not_empty_read "Enter database server port" "5050")
+database_server_port=$(not_empty_read "Enter database server port : " "5050")
 
-sed -i -e 's/"name": ".*"/"name": "'$server_name'"/' /etc/opt/$APPNAME/server.config
-sed -i -e 's/"websocketAddress": ".*"/"websocketAddress": "'$piper_websocket_address'"/' /etc/opt/$APPNAME/server.config
-sed -i -e 's/"websocketThroughVPN": ".*"/"websocketThroughVPN": "'$through_vpn'"/' /etc/opt/$APPNAME/server.config
-sed -i -e 's/"databaseServerAddress": ".*"/"databaseServerAddress": "'$database_server_address'"/' /etc/opt/$APPNAME/server.config
-sed -i -e 's/"databaseServerPort": ".*"/"databaseServerPort": "'$database_server_port'"/' /etc/opt/$APPNAME/server.config
+sed -i -e 's/"name": ".*"/"name": "'"$server_name"'"/' /etc/opt/$APPNAME/server.config
+sed -i -e 's#"websocketAddress": ".*"#"websocketAddress": "'"$piper_websocket_address"'"#' /etc/opt/$APPNAME/server.config
+sed -i -e 's/"websocketThroughVPN": .*[,]*$/"websocketThroughVPN": '"$through_vpn"',/' /etc/opt/$APPNAME/server.config
+sed -i -e 's#"databaseServerAddress": ".*"#"databaseServerAddress": "'"$database_server_address"'"#' /etc/opt/$APPNAME/server.config
+sed -i -e 's/"databaseServerPort": .*[,]*$/"databaseServerPort": '"$database_server_port"',/' /etc/opt/$APPNAME/server.config
 
 
 
