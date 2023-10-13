@@ -22,15 +22,15 @@ echo "$result"
 
 installConfig(){
 	echo -e "Insert PiperServer and DatabseServer information \n"
-	echo -e "If PiperServer is installed on the same server as HiClientManager installed leave this empty \n"
+	echo -e "\nIf PiperServer is installed on the same server as HiClientManager installed leave this empty"
 	read -p "Enter TLS Cert File address :" tls_cert_file
-	echo -e "If PiperServer is installed on the same server as HiClientManager installed leave this empty \n"
+	echo -e "\nIf PiperServer is installed on the same server as HiClientManager installed leave this empty"
 	read -p "Enter TLS Private Key File address :" tls_private_key_file
-	echo -e "The port that database server must listen to. default is 5050 \n"
+	echo -e "\nThe port that database server must listen to. default is 5050"
 	database_server_port=$(not_empty_read "Enter database server port :" "5050")
-	echo -e "If PiperServer is behind another Server app like caddy this should be localhost othervise it can be 0.0.0.0\n"
+	echo -e "\nIf PiperServer is behind another Server app like caddy this should be localhost othervise it can be 0.0.0.0"
 	piper_server_address=$(not_empty_read "Enter PiperServer listening address :" "localhost")
-	echo -e "The port that PiperServer must listen to. default is 5051 \n"
+	echo -e "\nThe port that PiperServer must listen to. default is 5051"
 	piper_server_port=$(not_empty_read "Enter PiperServer listening port :" "5051")
 	
 	sed -i -e 's#"tlsCertFile": ".*"#"tlsCertFile": "'"$tls_cert_file"'"#' /etc/opt/$APPNAME/server.config
@@ -42,7 +42,6 @@ installConfig(){
 	# creat private and publick key
 	if [[ $(ls /bin/java) ]]; then
 		/bin/java -jar /opt/$APPNAME/bin/PiperServer.jar -c /etc/opt/$APPNAME/auth
-		echo "private and public key generated and saved in /etc/opt/$APPNAME/auth"
 		if [[ $(ls /opt/HiClientManager) ]]; then
 			read -e -p "HiClientManager is installed. Do you want to copy privateKey file to its auth folder ?(yes/no)" -i "yes" yes_or_no
 			if [[ "$yes_or_no" == "yes" ]]; then
