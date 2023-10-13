@@ -11,10 +11,10 @@
 APPNAME="HiClientManager"
 
 not_empty_read(){
-local DESCRIPTION=$1
-local DEFAULT_VALUE=$2
+local DESCRIPTION="$1"
+local DEFAULT_VALUE="$2"
 local result
-while [ -z $result ]; do
+while [ -z "$result" ]; do
 	read -p $DESCRIPTION -e -i $DEFAULT_VALUE result
 done
 echo $result
