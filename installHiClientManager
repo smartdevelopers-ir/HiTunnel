@@ -45,14 +45,20 @@ sed -i -e 's/"databaseServerPort": .*[,]*$/"databaseServerPort": '"$database_ser
 
 }
 
+if ls /tmp/$APPNAME.zip &> /dev/null ; then
+	read -p "$APPNAME.zip is already exists. Do you want to download it again ? y(es),n(o)" dowload_zip_again
+	if [[ "${dowload_zip_again,,}" == "y" ]] || [[ "${dowload_zip_again,,}" == "yes" ]]; then
+		wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/HiClientManager.zip
+		unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
+	fi
+else
+	wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/HiClientManager.zip
+	unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
+fi
 
 
-wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/HiClientManager.zip
-unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
-rm /tmp/$APPNAME.zip
-
-mkdir /etc/opt/$APPNAME
-mkdir /etc/opt/$APPNAME/auth
+mkdir /etc/opt/$APPNAME &> /dev/null
+mkdir /etc/opt/$APPNAME/auth &> /dev/null
 
 cp -a /opt/$APPNAME/config/. /etc/opt/$APPNAME
 
@@ -62,7 +68,7 @@ chmod +x /opt/$APPNAME/scripts/$APPNAME.sh
 ln -s /opt/$APPNAME/scripts/$APPNAME.sh /usr/local/bin/$APPNAME
 
 installConfig
-
+rm /tmp/$APPNAME.zip
 systemctl enable hi-client-manager.service
 systemctl start hi-client-manager.service
 

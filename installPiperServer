@@ -23,15 +23,15 @@ echo "$result"
 installConfig(){
 	echo -e "Insert PiperServer and DatabseServer information \n"
 	echo -e "\nIf PiperServer is installed on the same server as HiClientManager installed leave this empty"
-	read -p "Enter TLS Cert File address :" tls_cert_file
+	read -p "Enter TLS Cert File address : " tls_cert_file
 	echo -e "\nIf PiperServer is installed on the same server as HiClientManager installed leave this empty"
-	read -p "Enter TLS Private Key File address :" tls_private_key_file
+	read -p "Enter TLS Private Key File address : " tls_private_key_file
 	echo -e "\nThe port that database server must listen to. default is 5050"
-	database_server_port=$(not_empty_read "Enter database server port :" "5050")
+	database_server_port=$(not_empty_read "Enter database server port : " "5050")
 	echo -e "\nIf PiperServer is behind another Server app like caddy this should be localhost othervise it can be 0.0.0.0"
-	piper_server_address=$(not_empty_read "Enter PiperServer listening address :" "localhost")
+	piper_server_address=$(not_empty_read "Enter PiperServer listening address : " "localhost")
 	echo -e "\nThe port that PiperServer must listen to. default is 5051"
-	piper_server_port=$(not_empty_read "Enter PiperServer listening port :" "5051")
+	piper_server_port=$(not_empty_read "Enter PiperServer listening port : " "5051")
 	
 	sed -i -e 's#"tlsCertFile": ".*"#"tlsCertFile": "'"$tls_cert_file"'"#' /etc/opt/$APPNAME/server.config
 	sed -i -e 's#"tlsPrivateKetFile": ".*"#"tlsPrivateKetFile": "'"$"'"#' /etc/opt/$APPNAME/server.config
@@ -40,9 +40,9 @@ installConfig(){
 	sed -i -e 's/"piperServerPort": .*[,]*$/"piperServerPort": '"$piper_server_port"'/' /etc/opt/$APPNAME/server.config
 	
 	# creat private and publick key
-	if [[ $(ls /bin/java) ]]; then
+	if ls /bin/java &> /dev/null; then
 		/bin/java -jar /opt/$APPNAME/bin/PiperServer.jar -c /etc/opt/$APPNAME/auth
-		if [[ $(ls /opt/HiClientManager) ]]; then
+		if ls /opt/HiClientManager &> /dev/null; then
 			read -e -p "HiClientManager is installed. Do you want to copy privateKey file to its auth folder ?(yes/no)" -i "yes" yes_or_no
 			if [[ "$yes_or_no" == "yes" ]]; then
 				cp /etc/opt/$APPNAME/auth/privateKey.pv /etc/opt/HiClientManager/auth
@@ -54,7 +54,7 @@ installConfig(){
 }
 
 installCaddy(){
-	if [[ $(ls /etc/caddy) ]]; then
+	if ls /etc/caddy &> /dev/null; then
 		echo "caddy already installed"
 	else
 		sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
@@ -78,13 +78,22 @@ installCaddy(){
 
 }
 
+if ls /tmp/$APPNAME.zip &> /dev/null ; then
+	read -p "$APPNAME.zip is already exists. Do you want to download it again ? y(es),n(o)" dowload_zip_again
+	if [[ "${dowload_zip_again,,}" == "y" ]] || [[ "${dowload_zip_again,,}" == "yes" ]]; then
+		wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/PiperServer.zip
+		unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
+	fi
+else
+	wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/PiperServer.zip
+	unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
+fi
 
-wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/PiperServer.zip
-unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
-rm /tmp/$APPNAME.zip
 
-mkdir /etc/opt/$APPNAME
-mkdir /etc/opt/$APPNAME/auth
+
+
+mkdir /etc/opt/$APPNAME &> /dev/null
+mkdir /etc/opt/$APPNAME/auth &> /dev/null
 
 cp -a /opt/$APPNAME/config/. /etc/opt/$APPNAME
 
@@ -95,12 +104,12 @@ chmod +x /opt/$APPNAME/scripts/$APPNAME.sh
 ln -s /opt/$APPNAME/scripts/$APPNAME.sh /usr/local/bin/$APPNAME
 
 installConfig
-read -p "Do you want to install and config Caddy server for PiperServer(Yes/No) ? " installCaddyConfirmation
+read -e -p "Do you want to install and config Caddy server for PiperServer(Yes/No) ? " -i "yes" installCaddyConfirmation
 
 if [[ "${installCaddyConfirmation,,}" == "yes" ]]; then
 	installCaddy
 fi
-
+rm /tmp/$APPNAME.zip
 systemctl enable piper-server.service
 systemctl start piper-server.service
 
