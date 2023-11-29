@@ -20,6 +20,7 @@ done
 echo "$result"
 }
 installConfig(){
+domin_name=$(not_empty_read "Enter this server Domin Name : ")
 echo -e "Please enter the first PiperServer detail \n"
 server_name=$(not_empty_read "Server Name : ")
 piper_websocket_address=$(not_empty_read "Piper Websocket Address : " "wss://$server_name/ws/piper")
@@ -35,6 +36,7 @@ done
 database_server_address=$(not_empty_read "Enter database server address , ( default is localhost if PiperServer installed on this server) : " "localhost")
 database_server_port=$(not_empty_read "Enter database server port : " "5050")
 
+sed -i -e 's/"hostName": ".*"/"hostName": "'"$domin_name"'"/' /etc/opt/$APPNAME/server.config
 sed -i -e 's/"name": ".*"/"name": "'"$server_name"'"/' /etc/opt/$APPNAME/server.config
 sed -i -e 's#"websocketAddress": ".*"#"websocketAddress": "'"$piper_websocket_address"'"#' /etc/opt/$APPNAME/server.config
 sed -i -e 's/"websocketThroughVPN": .*[,]*$/"websocketThroughVPN": '"$through_vpn"',/' /etc/opt/$APPNAME/server.config
@@ -48,11 +50,11 @@ sed -i -e 's/"databaseServerPort": .*[,]*$/"databaseServerPort": '"$database_ser
 if ls /tmp/$APPNAME.zip &> /dev/null ; then
 	read -p "$APPNAME.zip is already exists. Do you want to download it again ? y(es),n(o)" dowload_zip_again
 	if [[ "${dowload_zip_again,,}" == "y" ]] || [[ "${dowload_zip_again,,}" == "yes" ]]; then
-		wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/HiClientManager.zip
+		wget -O /tmp/$APPNAME.zip https://s17.goolha.tk/download/HiClientManager.zip
 		unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
 	fi
 else
-	wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/HiClientManager.zip
+	wget -O /tmp/$APPNAME.zip https://s17.goolha.tk/download/HiClientManager.zip
 	unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
 fi
 

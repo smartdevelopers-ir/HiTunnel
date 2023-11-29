@@ -9,7 +9,7 @@
 # delete temp
 
 APPNAME="PiperServer"
-
+server_domin=""
 not_empty_read(){
 local DESCRIPTION="$1"
 local DEFAULT_VALUE="$2"
@@ -19,13 +19,34 @@ while [ -z "$result" ]; do
 done
 echo "$result"
 }
-
+find_tls_key(){
+	local key
+	key=""
+	if ls /var/lib/caddy &> /dev/null; then
+		key="/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$server_domin/$server_domin"".key"
+		if ! ls -a "$key" &> /dev/null ; then
+			key=""
+		fi
+	fi
+	echo "$key"
+}
+find_tls_cert(){
+	local cert
+	cert=""
+	if ls /var/lib/caddy &> /dev/null; then
+		cert="/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$server_domin/$server_domin"".crt"
+		if ! ls -a "$cert" &> /dev/null ; then
+			cert=""
+		fi
+	fi
+	echo "$cert"
+}
 installConfig(){
 	echo -e "Insert PiperServer and DatabseServer information \n"
 	echo -e "\nIf PiperServer is installed on the same server as HiClientManager installed leave this empty"
-	read -p "Enter TLS Cert File address : " tls_cert_file
+	read -p "Enter TLS Cert File address : " -e -i "$(find_tls_cert)" tls_cert_file
 	echo -e "\nIf PiperServer is installed on the same server as HiClientManager installed leave this empty"
-	read -p "Enter TLS Private Key File address : " tls_private_key_file
+	read -p "Enter TLS Private Key File address : " -e -i "$(find_tls_key)" tls_private_key_file
 	echo -e "\nThe port that database server must listen to. default is 5050"
 	database_server_port=$(not_empty_read "Enter database server port : " "5050")
 	echo -e "\nIf PiperServer is behind another Server app like caddy this should be localhost othervise it can be 0.0.0.0"
@@ -64,11 +85,11 @@ installCaddy(){
 		sudo apt install caddy
 	fi
 	
-	read -p "Enter your server domain : " server_domin
+	#read -p "Enter your server domain : " server_domin
 	echo -e "$server_domin {\n" > /etc/caddy/Caddyfile
 	if [[ "$piper_server_address" == "localhost" ]]; then
 		echo -e "\thandle /ws/piper* {\n" \
-			"\t\treverse_proxy ws://$piper_server_address:$piper_server_port\n" \
+			"\t\treverse_proxy http://$piper_server_address:$piper_server_port\n" \
 			"\t}\n" >> /etc/caddy/Caddyfile
 	fi
 	echo -e "\thandle {\n" \
@@ -78,14 +99,33 @@ installCaddy(){
 
 }
 
+update_and_upgrade(){
+	answer=$(not_empty_read "Do you want run apt update and apt upgrade? y(es)|n(o): ")
+	if [[ "${answer,,}" == "y" ]] || [[ "${answer,,}" == "yes" ]]; then
+		apt update && apt upgrade -y			
+	fi
+}
+installJava(){
+	if ! ls /bin/java &>/dev/null ; then
+		answer=$(not_empty_read "Do you want install java? y(es)|n(o): ")
+		if [[ "${answer,,}" == "y" ]] || [[ "${answer,,}" == "yes" ]]; then
+			apt install openjdk-17-jre-headless -y			
+		fi
+	fi
+}
+server_domin=$(not_empty_read "Enter your server domain : ")
+
+update_and_upgrade
+installJava
+
 if ls /tmp/$APPNAME.zip &> /dev/null ; then
 	read -p "$APPNAME.zip is already exists. Do you want to download it again ? y(es),n(o)" dowload_zip_again
 	if [[ "${dowload_zip_again,,}" == "y" ]] || [[ "${dowload_zip_again,,}" == "yes" ]]; then
-		wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/PiperServer.zip
+		wget -O /tmp/$APPNAME.zip https://s17.goolha.tk/download/PiperServer.zip
 		unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
 	fi
 else
-	wget -O /tmp/$APPNAME.zip https://s3.goolha.tk/download/PiperServer.zip
+	wget -O /tmp/$APPNAME.zip https://s17.goolha.tk/download/PiperServer.zip
 	unzip /tmp/$APPNAME.zip -d /opt/$APPNAME 1> /dev/null
 fi
 
@@ -103,12 +143,14 @@ ln -s /opt/$APPNAME/services/piper-server.service /etc/systemd/system/piper-serv
 chmod +x /opt/$APPNAME/scripts/$APPNAME.sh
 ln -s /opt/$APPNAME/scripts/$APPNAME.sh /usr/local/bin/$APPNAME
 
-installConfig
 read -e -p "Do you want to install and config Caddy server for PiperServer(Yes/No) ? " -i "yes" installCaddyConfirmation
-
 if [[ "${installCaddyConfirmation,,}" == "yes" ]]; then
 	installCaddy
 fi
+
+installConfig
+
+
 rm /tmp/$APPNAME.zip
 systemctl enable piper-server.service
 systemctl start piper-server.service
