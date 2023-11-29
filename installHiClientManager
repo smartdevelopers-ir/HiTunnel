@@ -26,14 +26,14 @@ server_name=$(not_empty_read "Server Name : ")
 piper_websocket_address=$(not_empty_read "Piper Websocket Address : " "wss://$server_name/ws/piper")
 while [[ "$through_vpn" != "true" ]] && [[ "$through_vpn" != "false" ]]; do
 	through_vpn=$(not_empty_read "Should clients connect to this websocket address through VPN ? (Y)es-(N)o ? :" "Y")
-	if [[ "${through_vpn,,}" == "y" ]] || [["${through_vpn,,}" == "yes" ]]; then
+	if [[ "${through_vpn,,}" == "y" ]] || [[ "${through_vpn,,}" == "yes" ]]; then
 		through_vpn="true"
-	elif [[ "${through_vpn,,}" == "n" ]] || [["${through_vpn,,}" == "no" ]]; then
+	elif [[ "${through_vpn,,}" == "n" ]] || [[ "${through_vpn,,}" == "no" ]]; then
 		through_vpn="false"
 	fi
 done
 
-database_server_address=$(not_empty_read "Enter database server address , ( default is localhost if PiperServer installed on this server) : " "localhost")
+database_server_address=$(not_empty_read "Enter database server url , ( default is localhost if PiperServer installed on this server) : " "localhost")
 database_server_port=$(not_empty_read "Enter database server port : " "5050")
 
 sed -i -e 's/"hostName": ".*"/"hostName": "'"$domin_name"'"/' /etc/opt/$APPNAME/server.config
