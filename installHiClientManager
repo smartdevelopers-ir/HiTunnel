@@ -47,6 +47,7 @@ sed -i -e 's/"databaseServerPort": .*[,]*$/"databaseServerPort": '"$database_ser
 
 }
 
+timedatectl set-timezone Asia/Tehran
 if ls /tmp/$APPNAME.zip &> /dev/null ; then
 	read -p "$APPNAME.zip is already exists. Do you want to download it again ? y(es),n(o)" dowload_zip_again
 	if [[ "${dowload_zip_again,,}" == "y" ]] || [[ "${dowload_zip_again,,}" == "yes" ]]; then

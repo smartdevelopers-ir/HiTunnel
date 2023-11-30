@@ -113,6 +113,8 @@ installJava(){
 		fi
 	fi
 }
+
+timedatectl set-timezone Asia/Tehran
 server_domin=$(not_empty_read "Enter your server domain : ")
 
 update_and_upgrade
